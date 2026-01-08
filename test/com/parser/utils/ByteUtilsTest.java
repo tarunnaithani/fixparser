@@ -23,16 +23,6 @@ public class ByteUtilsTest {
     }
 
     @Test
-    public void testReadLong() {
-        byte[] data = "1234567890123".getBytes(StandardCharsets.US_ASCII);
-        assertEquals(1234567890123L, ByteUtils.readLong(data, 0, 13));
-
-        // Test with a large sequence number common in high-volume days
-        byte[] largeSeq = "9223372036854775807".getBytes(); // Long.MAX_VALUE
-        assertEquals(Long.MAX_VALUE, ByteUtils.readLong(largeSeq, 0, 19));
-    }
-
-    @Test
     public void testReadDouble() {
         byte[] data = "44=150.50;".getBytes(StandardCharsets.US_ASCII);
         // Extract "150.50" (starts at index 3, length 6)
@@ -40,6 +30,16 @@ public class ByteUtilsTest {
 
         byte[] wholeNumber = "200".getBytes();
         assertEquals(200.0, ByteUtils.readDouble(wholeNumber, 0, 3), 0.0001);
+    }
+
+    @Test
+    public void testReadLong() {
+        byte[] data = "1234567890123".getBytes(StandardCharsets.US_ASCII);
+        assertEquals(1234567890123L, ByteUtils.readLong(data, 0, 13));
+
+        // Test with a large sequence number common in high-volume days
+        byte[] largeSeq = "9223372036854775807".getBytes(); // Long.MAX_VALUE
+        assertEquals(Long.MAX_VALUE, ByteUtils.readLong(largeSeq, 0, 19));
     }
 
     @Test
@@ -66,6 +66,5 @@ public class ByteUtilsTest {
         assertEquals(8, copied);
         assertArrayEquals(src, dest);
     }
-
 
 }

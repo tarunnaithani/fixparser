@@ -6,10 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class to parse fix message received as byte array.
- * It runs extraction of location/offset of each fix tag value
- * along with number of bytes used to store the value.
- * These offsets can later be used to read specific fix tag from byte array.
+ * Class to parse FIX messages received as byte arrays.
+ * This parser extracts the location (offset) and length of each FIX tag value
+ * in the byte array without copying the values. These offsets can later be used
+ * to retrieve specific FIX tag values from the byte array.
  */
 public class FixParser {
     private static final byte SOH = 0x01;
@@ -17,17 +17,19 @@ public class FixParser {
 
     private final Map<Integer, FixField> fixfields;
 
+    /**
+     * Constructs a new FixParser instance with an empty internal map.
+     */
     public FixParser() {
         this.fixfields = new HashMap<>();
     }
 
     /**
-     * Method to parse fix fields from FIX message in byte array.
-     * It makes extracts the offsets in the byte array value for each tag along with
-     * number of bytes that store the value
+     * Parses FIX fields from the given byte array.
+     * Clears any previously parsed state and extracts offsets and lengths for each tag.
      *
-     * @param data fix message as byte array
-     * @return number of fix fields parsed successfully
+     * @param data The FIX message as a byte array.
+     * @return The number of FIX fields parsed successfully.
      */
     public int parse(byte[] data) {
         this.fixfields.clear();
@@ -51,28 +53,30 @@ public class FixParser {
     }
 
     /**
-     * Check if tag exists in parsed tags from fix message
+     * Checks if a tag exists in the parsed FIX message.
      *
-     * @param tag FIX tag to be retrieved
-     * @return true if tag is present in parsed tags
+     * @param tag The FIX tag to check.
+     * @return True if the tag exists, false otherwise.
      */
     public boolean fieldExists(int tag){
         return fixfields.get(tag) != null;
     }
 
     /**
-     *  Retrieves field object containing tag location
+     * Retrieves the FixField object containing the offset and length of the tag value.
      *
-     * @param tag FIX tag to be retrieved
-     * @return FixField containing offset and length of the value
+     * @param tag The FIX tag to retrieve.
+     * @return The FixField object, or null if the tag does not exist.
      */
     private FixField getField(int tag){
         return fixfields.get(tag);
     }
 
     /**
-     *  check if the tag exists else throw exception
-     * @param tag FIX tag to be checked
+     * Ensures the specified tag exists in the parsed data.
+     * Throws a RuntimeException if the tag is not found.
+     *
+     * @param tag The FIX tag to check.
      */
     private void checkFieldExists(int tag) {
         if(!fieldExists(tag))
@@ -80,11 +84,11 @@ public class FixParser {
     }
 
     /**
-     * read int value for a FIX tag
+     * Reads an int value for the specified FIX tag.
      *
-     * @param data The raw FIX message byte array
-     * @param tag FIX tag to be retrieved
-     * @return int value for the tag from message
+     * @param data The raw FIX message byte array.
+     * @param tag The FIX tag to retrieve.
+     * @return The int value for the tag.
      */
     public int getInt(byte[] data, int tag){
         checkFieldExists(tag);
@@ -93,26 +97,25 @@ public class FixParser {
         return ByteUtils.readInt(data, f.offset, f.length);
     }
 
-
     /**
-     * read long value for a FIX tag
+     * Reads a long value for the specified FIX tag.
      *
-     * @param data The raw FIX message byte array
-     * @param tag FIX tag to be retrieved
-     * @return long value read from bytes
+     * @param data The raw FIX message byte array.
+     * @param tag The FIX tag to retrieve.
+     * @return The long value for the tag.
      */
     public long getLong(byte[] data, int tag){
         checkFieldExists(tag);
         FixField f =  getField(tag);
         return ByteUtils.readLong(data, f.offset, f.length);
     }
+
     /**
+     * Reads a double value for the specified FIX tag.
      *
-     * read double value for a FIX tag
-     *
-     * @param data The raw FIX message byte array
-     * @param tag FIX tag to be retrieved
-     * @return double value read from bytes
+     * @param data The raw FIX message byte array.
+     * @param tag The FIX tag to retrieve.
+     * @return The double value for the tag.
      */
     public double getDouble(byte[] data, int tag){
         checkFieldExists(tag);
@@ -121,11 +124,11 @@ public class FixParser {
     }
 
     /**
-     * read boolean value for a FIX tag
+     * Reads a boolean value for the specified FIX tag.
      *
-     * @param data The raw FIX message byte array
-     * @param tag FIX tag to be retrieved
-     * @return boolean value read
+     * @param data The raw FIX message byte array.
+     * @param tag The FIX tag to retrieve.
+     * @return The boolean value for the tag.
      */
     public boolean getBoolean(byte[] data, int tag){
         checkFieldExists(tag);
@@ -134,11 +137,11 @@ public class FixParser {
     }
 
     /**
-     * read byte array value for a FIX tag
+     * Reads the raw byte array value for the specified FIX tag.
      *
-     * @param data The raw FIX message byte array
-     * @param tag FIX tag to be retrieved
-     * @return byte array containing values for the tag
+     * @param data The raw FIX message byte array.
+     * @param tag The FIX tag to retrieve.
+     * @return A byte array containing the value for the tag.
      */
     public byte[] getBytes(byte[] data, int tag){
         checkFieldExists(tag);
@@ -148,9 +151,18 @@ public class FixParser {
         return values;
     }
 
+    /**
+     * Internal class to store the offset and length of a FIX tag value.
+     */
     static class FixField {
         final int offset, length;
 
+        /**
+         * Constructs a FixField with the specified offset and length.
+         *
+         * @param offset The offset of the tag value.
+         * @param length The length of the tag value.
+         */
         FixField(int offset, int length) {
             this.offset = offset;
             this.length = length;

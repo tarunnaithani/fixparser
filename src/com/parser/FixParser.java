@@ -1,9 +1,7 @@
 package com.parser;
 
 import com.parser.utils.ByteUtils;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.parser.utils.FieldLocationsMap;
 
 /**
  * Class to parse FIX messages received as byte arrays.
@@ -15,13 +13,13 @@ public class FixParser {
     private static final byte SOH = 0x01;
     private static final byte EQUALS = '=';
 
-    private final Map<Integer, FixField> fixfields;
+    private final FieldLocationsMap fieldLocationsMap;
 
     /**
      * Constructs a new FixParser instance with an empty internal map.
      */
     public FixParser() {
-        this.fixfields = new HashMap<>();
+        this.fieldLocationsMap = new FieldLocationsMap();
     }
 
     /**
@@ -32,7 +30,7 @@ public class FixParser {
      * @return The number of FIX fields parsed successfully.
      */
     public int parse(byte[] data) {
-        this.fixfields.clear();
+        this.fieldLocationsMap.clear();
 
         int i = 0;
         while (i < data.length) {
@@ -46,10 +44,10 @@ public class FixParser {
             // Find SOH to get the value
             while (i < data.length && data[i] != SOH)
                 i++;
-            this.fixfields.put(tag, new FixField(fixValStart, i - fixValStart));
+            this.fieldLocationsMap.put(tag, fixValStart, i - fixValStart);
             i++; // skip SOH
         }
-        return fixfields.size();
+        return fieldLocationsMap.size();
     }
 
     /**
@@ -59,17 +57,7 @@ public class FixParser {
      * @return True if the tag exists, false otherwise.
      */
     public boolean fieldExists(int tag) {
-        return fixfields.get(tag) != null;
-    }
-
-    /**
-     * Retrieves the FixField object containing the offset and length of the tag value.
-     *
-     * @param tag The FIX tag to retrieve.
-     * @return The FixField object, or null if the tag does not exist.
-     */
-    private FixField getField(int tag) {
-        return fixfields.get(tag);
+        return fieldLocationsMap.containsKey(tag);
     }
 
     /**
@@ -93,8 +81,8 @@ public class FixParser {
     public int getInt(byte[] data, int tag) {
         checkFieldExists(tag);
 
-        FixField f = getField(tag);
-        return ByteUtils.readInt(data, f.offset, f.length);
+        int index = fieldLocationsMap.getIndex(tag);
+        return ByteUtils.readInt(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index));
     }
 
     /**
@@ -106,8 +94,8 @@ public class FixParser {
      */
     public long getLong(byte[] data, int tag) {
         checkFieldExists(tag);
-        FixField f = getField(tag);
-        return ByteUtils.readLong(data, f.offset, f.length);
+        int index = fieldLocationsMap.getIndex(tag);
+        return ByteUtils.readLong(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index));
     }
 
     /**
@@ -119,8 +107,8 @@ public class FixParser {
      */
     public double getDouble(byte[] data, int tag) {
         checkFieldExists(tag);
-        FixField f = getField(tag);
-        return ByteUtils.readDouble(data, f.offset, f.length);
+        int index = fieldLocationsMap.getIndex(tag);
+        return ByteUtils.readDouble(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index));
     }
 
     /**
@@ -132,8 +120,8 @@ public class FixParser {
      */
     public boolean getBoolean(byte[] data, int tag) {
         checkFieldExists(tag);
-        FixField f = getField(tag);
-        return ByteUtils.readBoolean(data, f.offset);
+        int index = fieldLocationsMap.getIndex(tag);
+        return ByteUtils.readBoolean(data, fieldLocationsMap.getOffset(index));
     }
 
     /**
@@ -145,27 +133,9 @@ public class FixParser {
      */
     public byte[] getBytes(byte[] data, int tag) {
         checkFieldExists(tag);
-        FixField f = getField(tag);
-        byte[] values = new byte[f.length];
-        ByteUtils.readBytes(data, f.offset, f.length, values);
+        int index = fieldLocationsMap.getIndex(tag);
+        byte[] values = new byte[fieldLocationsMap.getLength(index)];
+        ByteUtils.readBytes(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index), values);
         return values;
-    }
-
-    /**
-     * Internal class to store the offset and length of a FIX tag value.
-     */
-    static class FixField {
-        final int offset, length;
-
-        /**
-         * Constructs a FixField with the specified offset and length.
-         *
-         * @param offset The offset of the tag value.
-         * @param length The length of the tag value.
-         */
-        FixField(int offset, int length) {
-            this.offset = offset;
-            this.length = length;
-        }
     }
 }

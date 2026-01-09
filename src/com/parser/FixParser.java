@@ -1,7 +1,7 @@
 package com.parser;
 
 import com.parser.utils.ByteUtils;
-import com.parser.utils.FieldLocationsMap;
+import com.parser.utils.FieldLocationMap;
 
 /**
  * Class to parse FIX messages received as byte arrays.
@@ -13,13 +13,13 @@ public class FixParser {
     private static final byte SOH = 0x01;
     private static final byte EQUALS = '=';
 
-    private final FieldLocationsMap fieldLocationsMap;
+    private final FieldLocationMap fieldLocationMap;
 
     /**
      * Constructs a new FixParser instance with an empty internal map.
      */
     public FixParser() {
-        this.fieldLocationsMap = new FieldLocationsMap();
+        this.fieldLocationMap = new FieldLocationMap();
     }
 
     /**
@@ -30,7 +30,7 @@ public class FixParser {
      * @return The number of FIX fields parsed successfully.
      */
     public int parse(byte[] data) {
-        this.fieldLocationsMap.clear();
+        this.fieldLocationMap.clear();
 
         int i = 0;
         while (i < data.length) {
@@ -44,10 +44,10 @@ public class FixParser {
             // Find SOH to get the value
             while (i < data.length && data[i] != SOH)
                 i++;
-            this.fieldLocationsMap.put(tag, fixValStart, i - fixValStart);
+            this.fieldLocationMap.put(tag, fixValStart, i - fixValStart);
             i++; // skip SOH
         }
-        return fieldLocationsMap.size();
+        return fieldLocationMap.size();
     }
 
     /**
@@ -57,7 +57,7 @@ public class FixParser {
      * @return True if the tag exists, false otherwise.
      */
     public boolean fieldExists(int tag) {
-        return fieldLocationsMap.containsKey(tag);
+        return fieldLocationMap.containsKey(tag);
     }
 
     /**
@@ -81,8 +81,8 @@ public class FixParser {
     public int getInt(byte[] data, int tag) {
         checkFieldExists(tag);
 
-        int index = fieldLocationsMap.getIndex(tag);
-        return ByteUtils.readInt(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index));
+        int index = fieldLocationMap.getIndex(tag);
+        return ByteUtils.readInt(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index));
     }
 
     /**
@@ -94,8 +94,8 @@ public class FixParser {
      */
     public long getLong(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationsMap.getIndex(tag);
-        return ByteUtils.readLong(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index));
+        int index = fieldLocationMap.getIndex(tag);
+        return ByteUtils.readLong(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index));
     }
 
     /**
@@ -107,8 +107,8 @@ public class FixParser {
      */
     public double getDouble(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationsMap.getIndex(tag);
-        return ByteUtils.readDouble(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index));
+        int index = fieldLocationMap.getIndex(tag);
+        return ByteUtils.readDouble(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index));
     }
 
     /**
@@ -120,8 +120,8 @@ public class FixParser {
      */
     public boolean getBoolean(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationsMap.getIndex(tag);
-        return ByteUtils.readBoolean(data, fieldLocationsMap.getOffset(index));
+        int index = fieldLocationMap.getIndex(tag);
+        return ByteUtils.readBoolean(data, fieldLocationMap.getOffset(index));
     }
 
     /**
@@ -133,9 +133,9 @@ public class FixParser {
      */
     public byte[] getBytes(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationsMap.getIndex(tag);
-        byte[] values = new byte[fieldLocationsMap.getLength(index)];
-        ByteUtils.readBytes(data, fieldLocationsMap.getOffset(index), fieldLocationsMap.getLength(index), values);
+        int index = fieldLocationMap.getIndex(tag);
+        byte[] values = new byte[fieldLocationMap.getLength(index)];
+        ByteUtils.readBytes(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index), values);
         return values;
     }
 }

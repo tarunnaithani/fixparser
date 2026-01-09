@@ -7,7 +7,7 @@ import java.util.Arrays;
  * This map uses open addressing with linear probing for collision resolution.
  * It stores tags, offsets, and lengths of FIX fields, along with their states.
  */
-public class FieldLocationsMap {
+public class FieldLocationMap {
     private final int[] tags;
     private final int[] offsets;
     private final int[] lengths;
@@ -15,12 +15,12 @@ public class FieldLocationsMap {
     private int size;
     private final int maxNumberOfFieldsExpected;
     private static final int EMPTY_RETURN = -1;
-    private static final int DEFAULT_CAPACITY = 100;
+    private static final int DEFAULT_CAPACITY = 200;
 
     /**
      * Constructs a new FieldLocationsMap with the default capacity.
      */
-    public FieldLocationsMap() {
+    public FieldLocationMap() {
         this(DEFAULT_CAPACITY);
     }
 
@@ -29,7 +29,7 @@ public class FieldLocationsMap {
      *
      * @param maxNumberOfFieldsExpected The maximum number of fields the map can store.
      */
-    public FieldLocationsMap(int maxNumberOfFieldsExpected) {
+    public FieldLocationMap(int maxNumberOfFieldsExpected) {
         this.maxNumberOfFieldsExpected =  maxNumberOfFieldsExpected;
         this.tags = new int[this.maxNumberOfFieldsExpected];
         this.offsets = new int[this.maxNumberOfFieldsExpected];
@@ -63,16 +63,14 @@ public class FieldLocationsMap {
         }
 
         int index = hash(tag);
-        int firstTombstone = -1;
 
         while (true) {
             byte state = states[index];
             if (state == 0) { // empty
-                int insertIndex = (firstTombstone != -1) ? firstTombstone : index;
-                tags[insertIndex] = tag;
-                offsets[insertIndex] = offset;
-                lengths[insertIndex] = length;
-                states[insertIndex] = 1;
+                tags[index] = tag;
+                offsets[index] = offset;
+                lengths[index] = length;
+                states[index] = 1;
                 size++;
                 return;
             } else if (state == 1) { // occupied
@@ -81,8 +79,6 @@ public class FieldLocationsMap {
                     lengths[index] = length;
                     return;
                 }
-            } else { // tombstone
-                if (firstTombstone == -1) firstTombstone = index;
             }
             index = (index + 1) % maxNumberOfFieldsExpected;
         }

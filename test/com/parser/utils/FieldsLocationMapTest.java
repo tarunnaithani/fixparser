@@ -10,7 +10,7 @@ public class FieldsLocationMapTest {
 
     @Test
     public void putAddsNewEntry() {
-        FieldLocationsMap map = new FieldLocationsMap(10);
+        FieldLocationMap map = new FieldLocationMap(10);
         map.put(1, 100, 10);
         assertTrue(map.containsKey(1));
         assertEquals(100, map.getOffset(map.getIndex(1)));
@@ -19,7 +19,7 @@ public class FieldsLocationMapTest {
 
     @Test
     public void putUpdatesExistingEntry() {
-        FieldLocationsMap map = new FieldLocationsMap(10);
+        FieldLocationMap map = new FieldLocationMap(10);
         map.put(1, 100, 10);
         map.put(1, 200, 20);
         assertTrue(map.containsKey(1));
@@ -29,19 +29,19 @@ public class FieldsLocationMapTest {
 
     @Test
     public void getIndexReturnsEmptyForNonExistentKey() {
-        FieldLocationsMap map = new FieldLocationsMap(10);
+        FieldLocationMap map = new FieldLocationMap(10);
         assertEquals(-1, map.getIndex(99));
     }
 
     @Test
     public void containsKeyReturnsFalseForNonExistentKey() {
-        FieldLocationsMap map = new FieldLocationsMap(10);
+        FieldLocationMap map = new FieldLocationMap(10);
         assertFalse(map.containsKey(99));
     }
 
     @Test
     public void clearRemovesAllEntries() {
-        FieldLocationsMap map = new FieldLocationsMap(10);
+        FieldLocationMap map = new FieldLocationMap(10);
         map.put(1, 100, 10);
         map.put(2, 200, 20);
         map.clear();
@@ -52,7 +52,7 @@ public class FieldsLocationMapTest {
 
     @Test
     public void putThrowsWhenCapacityExceeded() {
-        FieldLocationsMap map = new FieldLocationsMap(2);
+        FieldLocationMap map = new FieldLocationMap(2);
         map.put(1, 100, 10);
         map.put(2, 200, 20);
         assertThrows(RuntimeException.class, () -> map.put(3, 300, 30));
@@ -60,7 +60,7 @@ public class FieldsLocationMapTest {
 
     @Test
     public void sizeReturnsCorrectCount() {
-        FieldLocationsMap map = new FieldLocationsMap(10);
+        FieldLocationMap map = new FieldLocationMap(10);
         map.put(1, 100, 10);
         map.put(2, 200, 20);
         assertEquals(2, map.size());
@@ -68,7 +68,7 @@ public class FieldsLocationMapTest {
 
     @Test
     public void getOffsetAndLengthWorkForValidIndex() {
-        FieldLocationsMap map = new FieldLocationsMap(10);
+        FieldLocationMap map = new FieldLocationMap(10);
         map.put(1, 100, 10);
         int index = map.getIndex(1);
         assertEquals(100, map.getOffset(index));

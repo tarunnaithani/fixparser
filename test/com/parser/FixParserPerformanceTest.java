@@ -30,7 +30,7 @@ public class FixParserPerformanceTest {
         System.out.println("Parsed(avg) single message in " + (elapsedNanos)/iterations + " ns");
 
         // Adjust threshold if needed for your environment.
-        Assert.assertTrue ("Parsing of single message took more than 1 micro-" + elapsedNanos/iterations,  elapsedNanos/iterations< 1000);
-        Assert.assertTrue("Parsing too slow: " + elapsedMs + " ms", elapsedMs < 300);
+        Assert.assertTrue ("Parsing of single message too slow(> 1 micro)" + elapsedNanos/iterations,  elapsedNanos/iterations< 500);
+        Assert.assertTrue("Parsing too slow: " + elapsedMs + " ms", elapsedMs < 250);
     }
 }

@@ -4,8 +4,7 @@ package com.parser.utils;
 
 /**
  * Utility class for parsing and extracting primitive data types from byte arrays.
- * Provides methods to read integers, longs, doubles, booleans, and raw byte arrays
- * from message represented as a byte array.
+ * Provides methods to read various data types from message represented as a byte array.
  */
 public class ByteUtils {
 
@@ -112,8 +111,6 @@ public class ByteUtils {
         if (data[i] == '-') {
             isNegative = true;
             i++;
-        } else if (data[i] == '+') {
-            i++;
         }
 
         // 2. Accumulate digits
@@ -147,7 +144,7 @@ public class ByteUtils {
             return false;
         }
         else
-            throw new RuntimeException("Not a boolean-" + data[offset]);
+            throw new IllegalArgumentException("Not a boolean-" + data[offset]);
     }
 
     /**
@@ -163,6 +160,9 @@ public class ByteUtils {
     public static int readBytes(byte[] src, int offset, int length, byte[] dest) {
         if (length > dest.length) {
             throw new IllegalArgumentException("Destination buffer too small");
+        }
+        if(length > src.length - offset) {
+            length = src.length - offset;
         }
         System.arraycopy(src, offset, dest, 0, length);
         return length;

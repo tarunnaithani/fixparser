@@ -23,10 +23,17 @@ public class FixParser {
     private final List<MessageValidator> messageValidators;
 
     /**
-     * Constructs a new FixParser instance with an empty internal map.
+     * Constructs a new FixParser instance with the default maximum number of expected fields.
      */
     public FixParser() {
-        this.fieldLocationMap = new FieldLocationMap(DEFAULT_MAXIMUM_FIELDS_EXPECTED);
+        this(DEFAULT_MAXIMUM_FIELDS_EXPECTED);
+    }
+
+    /**
+     * Constructs a new FixParser instance with the specified maximum number of expected fields.
+     */
+    public FixParser(int maxNumberOfFieldsExpected) {
+        this.fieldLocationMap = new FieldLocationMap(maxNumberOfFieldsExpected);
         this.messageValidators = new ArrayList<>() {{
             add(new ChecksumValidator());
         }};

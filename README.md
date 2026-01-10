@@ -1,13 +1,13 @@
 # FixParser
 
-## Problem Statement
+## Problem 
 
 Write a Java parser to parse FIX messages. Design an API so people can easily access the fields of a FIX message. 
 The input of your parser is a byte[], and you can assume it contains at least one complete FIX message, and the 
 first bye of the FIX message is at position 0.
 
 
-## Brief Design Document
+## Brief Description
 
 The parser is designed to be lightweight and efficient for parsing FIX messages.
 It runs a single pass on the array to extract FIX tag and location of their values from ASCII byte array.
@@ -32,12 +32,14 @@ It has a custom implementation of Map to store tag and value location in the byt
 This helps to ensure garbage is not creating during operations.
 
 
-### Important Classes
-1. FixParser - Main class to parse FIX message from byte array and provide methods to access tag values
-2. ByteUtils - Utility class to perform byte array operations
-3. FieldLocationMap - Custom implementation of Map to store tag and value location
-
-
 ### System Requirements
 1. Minimum JDK version 1.7, 1.8 preferred as it is configured at project level
-2. Minimum JUnit 4, JUnit 5 preferred as it is configured at project level 
+2. Minimum JUnit 4, JUnit 5 preferred as it is configured at project level
+
+### Performance
+The parser processes,
+* 1 million messages of average size 200 bytes in around 350-400 milliseconds on a standard machine.
+* Average time to process single message is around 0.35-0.4 microseconds.
+
+However Performance test assert it to be under 1 microsecond only as in real life implementation network latency will 
+play a role in over all latency.

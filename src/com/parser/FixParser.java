@@ -2,6 +2,11 @@ package com.parser;
 
 import com.parser.utils.ByteUtils;
 import com.parser.utils.FieldLocationMap;
+import com.parser.validate.ChecksumValidator;
+import com.parser.validate.MessageValidator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to parse FIX messages received as byte arrays.
@@ -12,14 +17,19 @@ import com.parser.utils.FieldLocationMap;
 public class FixParser {
     private static final byte SOH = 0x01;
     private static final byte EQUALS = '=';
+    private static final int DEFAULT_MAXIMUM_FIELDS_EXPECTED = 200;
 
     private final FieldLocationMap fieldLocationMap;
+    private final List<MessageValidator> messageValidators;
 
     /**
      * Constructs a new FixParser instance with an empty internal map.
      */
     public FixParser() {
-        this.fieldLocationMap = new FieldLocationMap();
+        this.fieldLocationMap = new FieldLocationMap(DEFAULT_MAXIMUM_FIELDS_EXPECTED);
+        this.messageValidators = new ArrayList<>() {{
+            add(new ChecksumValidator());
+        }};
     }
 
     /**
@@ -27,9 +37,9 @@ public class FixParser {
      * Clears any previously parsed state and extracts offsets and lengths for each tag.
      *
      * @param data The FIX message as a byte array.
-     * @return The number of FIX fields parsed successfully.
+     * @return true if parsing is successfully along with validations.
      */
-    public int parse(byte[] data) {
+    public boolean parse(byte[] data) {
         this.fieldLocationMap.clear();
 
         int i = 0;
@@ -47,7 +57,21 @@ public class FixParser {
             this.fieldLocationMap.put(tag, fixValStart, i - fixValStart);
             i++; // skip SOH
         }
-        return fieldLocationMap.size();
+        return validate(data);
+    }
+
+    /**
+     * Validates the FIX message using all registered validators.
+     *
+     * @param data The FIX message as a byte array.
+     * @return true if all validators pass, false otherwise.
+     */
+    private boolean validate(byte[] data) {
+        boolean result = true;
+        for (MessageValidator validator : this.messageValidators) {
+            result = result & validator.validate(data, this);
+        }
+        return result;
     }
 
     /**
@@ -56,8 +80,8 @@ public class FixParser {
      * @param tag The FIX tag to check.
      * @return True if the tag exists, false otherwise.
      */
-    public boolean fieldExists(int tag) {
-        return fieldLocationMap.containsKey(tag);
+    public boolean fieldDoesNotExists(int tag) {
+        return !fieldLocationMap.containsKey(tag);
     }
 
     /**
@@ -67,8 +91,38 @@ public class FixParser {
      * @param tag The FIX tag to check.
      */
     private void checkFieldExists(int tag) {
-        if (!fieldExists(tag))
+        if (fieldDoesNotExists(tag))
             throw new RuntimeException("Tag not found in message");
+    }
+
+    /**
+     * Retrieves the index of the specified tag in the internal map.
+     *
+     * @param tag The FIX tag to retrieve.
+     * @return The index of the tag.
+     */
+    private int getIndex(int tag) {
+        return fieldLocationMap.getIndex(tag);
+    }
+
+    /**
+     * Retrieves the offset of the specified tag in the parsed message.
+     *
+     * @param tag The FIX tag to retrieve.
+     * @return The offset of the tag.
+     */
+    public int getOffset(int tag) {
+        return fieldLocationMap.getOffset(getIndex(tag));
+    }
+
+    /**
+     * Retrieves the length of the specified tag's value in the parsed message.
+     *
+     * @param tag The FIX tag to retrieve.
+     * @return The length of the tag's value.
+     */
+    public int getLength(int tag) {
+        return fieldLocationMap.getLength(getIndex(tag));
     }
 
     /**
@@ -81,9 +135,10 @@ public class FixParser {
     public int getInt(byte[] data, int tag) {
         checkFieldExists(tag);
 
-        int index = fieldLocationMap.getIndex(tag);
+        int index = getIndex(tag);
         return ByteUtils.readInt(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index));
     }
+
 
     /**
      * Reads a long value for the specified FIX tag.
@@ -94,7 +149,7 @@ public class FixParser {
      */
     public long getLong(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationMap.getIndex(tag);
+        int index = getIndex(tag);
         return ByteUtils.readLong(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index));
     }
 
@@ -107,7 +162,7 @@ public class FixParser {
      */
     public double getDouble(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationMap.getIndex(tag);
+        int index = getIndex(tag);
         return ByteUtils.readDouble(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index));
     }
 
@@ -120,7 +175,7 @@ public class FixParser {
      */
     public boolean getBoolean(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationMap.getIndex(tag);
+        int index = getIndex(tag);
         return ByteUtils.readBoolean(data, fieldLocationMap.getOffset(index));
     }
 
@@ -133,9 +188,10 @@ public class FixParser {
      */
     public byte[] getBytes(byte[] data, int tag) {
         checkFieldExists(tag);
-        int index = fieldLocationMap.getIndex(tag);
+        int index = getIndex(tag);
         byte[] values = new byte[fieldLocationMap.getLength(index)];
         ByteUtils.readBytes(data, fieldLocationMap.getOffset(index), fieldLocationMap.getLength(index), values);
         return values;
     }
+
 }
